@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Everest Orc Name Generator</title>
+<meta charset='utf-8' />
+<script>
+function stringToSeed(s) {
+	var i
+	var intArray = []
+	for (i = 0; i < s.length; i++) {
+		intArray.push(s.charCodeAt(i))
+	}
+
+	var result = 0;
+	var c = 1;
+	for (i = 0; i < s.length; i++) {
+		result = (result + c * intArray[s.length - i - 1]) % 281474976710656;
+		c *= 256;
+
+		if (c === 1099511627776) { c = 1; }
+	}
+	return result
+}
+
+function makeRNG(seedString) {
+	var m = 4294967296
+	var a = 1664525
+	var c = 1013904223
+	var truncBits = 16
+	var outSize = 16777216
+	var seedNum = stringToSeed(seedString) % m
+
+	return {
+		'next': function () {
+			var result = Math.floor(seedNum / truncBits) % outSize;
+			seedNum = (seedNum * a + c) % m;
+			return result / outSize;
+		},
+		'randomInt': function(i) {
+			return Math.floor(this.next() * i);
+		}
+	}
+}
+
+var orcNameComponents = [
+	['Br', 'F', 'G', 'N', 'D', 'R', 'H', 'W', 'M', 'Kr', 'Sh', 'B', 'Gr', 'Bl', 'Sn', 'Dr', 'K', 'L', 'Str', 'V', 'Fl', 'Pr', 'P'],
+	['a', 'o', 'u'],
+	['shn', 'lth', 'st', 'rth', 'rkn', 'thn', 'skn', 'skr', 'fl', 'rnst', 'gn', 'rb', 'l', 'rd', 'mn', 'n', 'rk', 'rsh', 'kr', 'rf', 'nf', 'rkl', 'rst', 'rd', 'rt', 'rtr', 'gr', 'sh', 'v'],
+	['a'],
+	['k', 'rk', 'ld', 'rd', 'lf', 'lk', 't', 'th', 'rt', 'rf', 'g', 'r', 'rm', 'nd', 'rn', 'st', 'nk', 'lg', 'ft', 'nth']
+]
+
+var globalRNG
+var pickOne = (a) => a[globalRNG.randomInt(a.length)]
+
+function getOrcName() {
+	var name = ''
+	var seed = document.getElementById('userName').value
+	if (seed.trim() === '') { seed = Math.random() + '' } 
+	globalRNG = makeRNG(seed)
+	orcNameComponents.forEach(component => name += pickOne(component))
+	return name
+}
+
+function onInputKey(e) {
+	if (e.keyCode == 13) { showOrcName() }
+}
+
+var showOrcName = () => document.getElementById('orcText').innerHTML = `Your Orc name is: <b>${getOrcName()}</b>`
+document.addEventListener('DOMContentLoaded', showOrcName)
+
+</script>
+</head>
+<body>
+	Your Human Name: <input id='userName' onkeydown = "onInputKey(event)"  ></input> (Leave blank for a random name)
+	<div id='orcText'></div>
+	<button onclick='showOrcName()'>Get Orc Name!</button>
+</body>
+</html>
